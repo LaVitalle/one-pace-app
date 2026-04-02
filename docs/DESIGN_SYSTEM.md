@@ -152,7 +152,92 @@ Propriedades do efeito Glass:
 
 > Esta seção é atualizada conforme novos componentes são criados no projeto.
 
-*Nenhum componente implementado ainda.*
+### HeroBanner
+
+**Arquivo:** `features/home/presentation/components/HeroBanner.kt`
+
+**Descricao:** Banner hero full-width exibido no topo da Home. Mostra o backdrop da serie com gradiente escuro de baixo para cima para garantir legibilidade do texto. Segue o padrao Netflix/Crunchyroll (Jakob's Law).
+
+**Parametros:**
+- `title: String` -- Titulo da serie (displayLarge)
+- `tagline: String` -- Tagline descritiva (bodyLarge, cor secondary)
+- `backdropUrl: String?` -- URL do backdrop 16:9 (Coil AsyncImage)
+- `voteAverage: Double` -- Nota media, exibida em badge com estrela
+- `modifier: Modifier` -- Modifier padrao
+
+**Regras:**
+- Aspect ratio fixo 16:9 para o container
+- Gradiente overlay: transparente no topo, 95% opaco na base (garante contraste WCAG AA)
+- Rating badge usa cor primary (amarelo) sobre surface semi-transparente
+- Texto do titulo limitado a 1 linha, tagline a 2 linhas
+
+---
+
+### SeasonCard
+
+**Arquivo:** `features/home/presentation/components/SeasonCard.kt`
+
+**Descricao:** Card compacto representando um arco/temporada. Poster 2:3 com nome e contagem de episodios. Estado selecionado com borda amarela (primary).
+
+**Parametros:**
+- `name: String` -- Nome do arco
+- `episodeCount: Int` -- Quantidade de episodios
+- `posterUrl: String?` -- URL do poster 2:3
+- `isSelected: Boolean` -- Estado de selecao (borda amarela + background elevado)
+- `onClick: () -> Unit` -- Callback de clique
+- `modifier: Modifier` -- Modifier padrao
+
+**Regras:**
+- Largura fixa 120dp (permite 2.5-3 cards visiveis, sinalizando scroll horizontal)
+- Poster aspect ratio 2:3 (proporcao padrao de poster anime/TV)
+- Selecionado: borda 2dp primary + background surfaceVariant + texto primary
+- Nao selecionado: sem borda + background surface + texto onSurface
+- Nome limitado a 2 linhas
+
+---
+
+### SeasonRow
+
+**Arquivo:** `features/home/presentation/components/SeasonRow.kt`
+
+**Descricao:** Secao horizontal com titulo "Arcos" e LazyRow de SeasonCards. Gerencia selecao visual do arco ativo.
+
+**Parametros:**
+- `seasons: List<Season>` -- Lista de arcos para exibir
+- `selectedSeason: Season?` -- Arco atualmente selecionado
+- `onSeasonClick: (Season) -> Unit` -- Callback ao clicar em um arco
+- `modifier: Modifier` -- Modifier padrao
+
+**Regras:**
+- Titulo "Arcos" em headlineLarge com padding horizontal 16dp
+- LazyRow com contentPadding horizontal 16dp e spacing 12dp entre cards
+- Items usam key = season.id para otimizar recomposicao
+- 12dp de espacamento vertical entre titulo e row
+
+---
+
+### EpisodeCard
+
+**Arquivo:** `features/home/presentation/components/EpisodeCard.kt`
+
+**Descricao:** Card horizontal para episodio em lista vertical. Thumbnail a esquerda (16:9), info a direita. Badge de numero do episodio em amarelo sobre o thumbnail.
+
+**Parametros:**
+- `episodeNumber: Int` -- Numero do episodio (exibido em badge "EP X")
+- `name: String` -- Nome do episodio
+- `stillUrl: String?` -- URL da imagem still do episodio
+- `runtime: Int?` -- Duracao em minutos (exibido como "X min", oculto se null)
+- `onClick: () -> Unit` -- Callback de clique
+- `modifier: Modifier` -- Modifier padrao
+
+**Regras:**
+- Altura fixa 100dp, largura full-width
+- Thumbnail com aspect ratio 16:9 (corresponde ao conteudo de video)
+- Badge "EP X" posicionado no canto inferior-esquerdo do thumbnail, cor primary/onPrimary
+- Nome limitado a 2 linhas
+- Card inteiro e touch target (excede 48x48dp minimo WCAG 2.5.5)
+
+---
 
 <!-- Template para novos componentes:
 ### ComponentName
@@ -205,6 +290,43 @@ Toda tela segue a estrutura:
 │    Bottom Nav Bar       │  ← Navegação principal (se aplicável)
 └─────────────────────────┘
 ```
+
+### Home Screen
+
+**Arquivo:** `features/home/presentation/HomeScreen.kt`
+
+**Padrao:** LazyColumn vertical com tres secoes distintas, inspirado em apps de streaming (Netflix, Crunchyroll, Disney+).
+
+```
++---------------------------+
+|       HeroBanner          |  -- Backdrop 16:9 + gradiente + titulo + rating
+|       (full-width)        |
++---------------------------+
+|       24dp spacing        |
++---------------------------+
+| Arcos (headlineLarge)     |
+| [Card][Card][Card]>>>     |  -- SeasonRow (LazyRow horizontal)
++---------------------------+
+|       24dp spacing        |
++---------------------------+
+| Episodios (headlineLarge) |
+| [EpisodeCard]             |  -- Lista vertical de EpisodeCards
+| [EpisodeCard]             |     padding horizontal 16dp, vertical 6dp
+| [EpisodeCard]             |
++---------------------------+
+```
+
+**Separacao Screen/Content:**
+- `HomeScreen` (stateful): injeta ViewModel via `hiltViewModel()`, coleta `uiState` com `collectAsStateWithLifecycle()`
+- `HomeContent` (stateless): funcao pura dos parametros, previewable e testavel
+
+**Estados tratados:**
+- Loading: CircularProgressIndicator centralizado (carga inicial)
+- Error: Mensagem + botao "Tentar novamente" (CTA amarelo)
+- Success: Layout completo com hero + arcos + episodios
+- Loading episodes: CircularProgressIndicator abaixo da SeasonRow
+
+---
 
 ### Estados de Tela
 

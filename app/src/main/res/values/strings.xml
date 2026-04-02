@@ -1,4 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">O One Piece</string>
+
+    <!-- Home -->
+    <string name="home_arcs_title">Arcos</string>
+    <string name="home_episodes_title">Episódios</string>
+    <string name="home_episode_prefix">EP %d</string>
+    <string name="home_minutes_suffix">%d min</string>
+    <string name="home_episodes_count">%d episódios</string>
+    <string name="home_error_retry">Tentar novamente</string>
+    <string name="home_rating">%.1f</string>
 </resources>
